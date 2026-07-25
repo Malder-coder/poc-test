@@ -2,41 +2,64 @@
 <html>
 <head><meta charset="UTF-8"><title>Test</title></head>
 <body>
-<h2>CoinEx Wallet Test</h2>
-<button onclick="runTest()" style="font-size:20px;padding:10px">НАЖМИ МЕНЯ</button>
-<br><br>
-<div id="out" style="background:#eee;padding:10px;font-size:14px;word-break:break-all"></div>
+<h2>CoinEx Wallet Test v2</h2>
+<button onclick="testAddress()" style="font-size:18px;padding:8px;margin:4px">1. Get Address</button><br>
+<button onclick="testSign()" style="font-size:18px;padding:8px;margin:4px">2. Sign Message</button><br>
+<button onclick="testAccounts()" style="font-size:18px;padding:8px;margin:4px">3. eth_accounts</button><br>
+<button onclick="testSendTx()" style="font-size:18px;padding:8px;margin:4px">4. Send TX (will fail)</button><br>
+<div id="out" style="background:#eee;padding:10px;font-size:13px;word-break:break-all;margin-top:10px"></div>
 <script>
-function log(s) {
-    document.getElementById("out").innerHTML += s + "<br>";
+function log(s) { document.getElementById("out").innerHTML += s + "<br>"; }
+function clear() { document.getElementById("out").innerHTML = ""; }
+
+function testAddress() {
+    clear();
+    log("address from window.ethereum: " + window.ethereum.address);
+    log("isTrust: " + window.ethereum.isTrust);
+    log("isViaWallet: " + window.ethereum.isViaWallet);
 }
-function runTest() {
-    log("=== START ===");
-    log("ethereum: " + typeof window.ethereum);
-    log("trust: " + typeof window.trust);
-    log("trustwallet: " + typeof window.trustwallet);
-    log("vtrx: " + typeof window.vtrx);
-    log("_tw_: " + typeof window._tw_);
-    log("web3: " + typeof window.web3);
-    if (window.ethereum) {
-        log("address: " + window.ethereum.address);
-        log("selectedAddress: " + window.ethereum.selectedAddress);
-        log("chainId: " + window.ethereum.chainId);
-        log("isViaWallet: " + window.ethereum.isViaWallet);
-        try {
-            var keys = Object.keys(window.ethereum);
-            log("keys: " + JSON.stringify(keys.slice(0,10)));
-        } catch(e) { log("keys error: " + e); }
-    }
-    if (window.web3) {
-        try { log("web3.eth.defaultAccount: " + window.web3.eth.defaultAccount); }
-        catch(e) {}
-    }
-    try {
-        log("webkit.messageHandlers: " + typeof window.webkit.messageHandlers);
-        log("handlers: " + JSON.stringify(Object.keys(window.webkit.messageHandlers)));
-    } catch(e) { log("webkit error: " + e); }
-    log("=== DONE ===");
+
+function testSign() {
+    clear();
+    log("Requesting personal_sign...");
+    var address = window.ethereum.address;
+    window.ethereum.request({
+        method: "personal_sign",
+        params: ["0x48656c6c6f20576f726c64", address]
+    }).then(function(sig) {
+        log("SIGNED! signature: " + sig);
+    }).catch(function(e) {
+        log("Error: " + e.message + " | code: " + e.code);
+    });
+}
+
+function testAccounts() {
+    clear();
+    log("Requesting eth_accounts...");
+    window.ethereum.request({method: "eth_accounts"}).then(function(accounts) {
+        log("eth_accounts: " + JSON.stringify(accounts));
+    }).catch(function(e) {
+        log("Error: " + e.message);
+    });
+}
+
+function testSendTx() {
+    clear();
+    log("Requesting eth_sendTransaction...");
+    var address = window.ethereum.address;
+    window.ethereum.request({
+        method: "eth_sendTransaction",
+        params: [{
+            from: address,
+            to: "0x0000000000000000000000000000000000000000",
+            value: "0x0",
+            gas: "0x5208"
+        }]
+    }).then(function(tx) {
+        log("TX SENT! hash: " + tx);
+    }).catch(function(e) {
+        log("Error: " + e.message + " | code: " + e.code);
+    });
 }
 </script>
 </body>
