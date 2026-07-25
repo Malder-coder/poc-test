@@ -1,23 +1,102 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="UTF-8"><title>Test2</title></head>
+<head><meta charset="UTF-8"><title>Deep Test</title></head>
 <body>
-<h2>Test - NEW PAGE</h2>
-<p>Когда появится запрос подключения - нажми ОТМЕНА/CANCEL</p>
-<button onclick="runTest()" style="font-size:18px;padding:10px;margin-top:10px">Проверить адрес</button>
-<div id="out" style="background:#eee;padding:10px;font-size:13px;word-break:break-all;margin-top:10px"></div>
+<h2>Deep Inspection</h2>
+<p>Отклони запрос подключения и нажми кнопку</p>
+<button onclick="runTest()" style="font-size:18px;padding:10px">Полный дамп</button>
+<div id="out" style="background:#eee;padding:8px;font-size:12px;word-break:break-all;margin-top:10px;white-space:pre-wrap"></div>
 <script>
-function log(s) { document.getElementById("out").innerHTML += s + "<br>"; }
+function log(s) { document.getElementById("out").textContent += s + "
+"; }
+
+function inspectObj(name, obj, depth) {
+    if (depth > 2 || obj === null || obj === undefined) return;
+    try {
+        var keys = Object.getOwnPropertyNames(obj);
+        keys.forEach(function(k) {
+            try {
+                var v = obj[k];
+                var t = typeof v;
+                if (t === "function") {
+                    log(name + "." + k + " = [function]");
+                } else if (t === "object" && v !== null && depth < 2) {
+                    log(name + "." + k + " = [object]");
+                    inspectObj(name + "." + k, v, depth + 1);
+                } else {
+                    log(name + "." + k + " = " + v);
+                }
+            } catch(e) { log(name + "." + k + " = [ERROR: " + e.message + "]"); }
+        });
+    } catch(e) { log(name + ": " + e.message); }
+}
+
 function runTest() {
-    log("ethereum: " + typeof window.ethereum);
-    if (window.ethereum) {
-        log("address: " + window.ethereum.address);
-        log("selectedAddress: " + window.ethereum.selectedAddress);
-        log("chainId: " + window.ethereum.chainId);
-    } else {
-        log("window.ethereum не существует");
-    }
-    log("trust: " + typeof window.trust);
+    document.getElementById("out").textContent = "";
+    
+    log("=== window.trust ===");
+    inspectObj("trust", window.trust, 0);
+    
+    log("
+=== window._tw_ ===");
+    inspectObj("_tw_", window._tw_, 0);
+    
+    log("
+=== window.ethereum (non-function) ===");
+    try {
+        Object.getOwnPropertyNames(window.ethereum).forEach(function(k) {
+            try {
+                var v = window.ethereum[k];
+                if (typeof v !== "function") log("ethereum." + k + " = " + v);
+            } catch(e) {}
+        });
+    } catch(e) { log("error: " + e); }
+    
+    log("
+=== navigator ===");
+    log("userAgent: " + navigator.userAgent);
+    log("language: " + navigator.language);
+    log("platform: " + navigator.platform);
+    
+    log("
+=== localStorage keys ===");
+    try {
+        for (var i = 0; i < localStorage.length; i++) {
+            log("ls[" + localStorage.key(i) + "] = " + localStorage.getItem(localStorage.key(i)).substring(0,100));
+        }
+        if (localStorage.length === 0) log("(empty)");
+    } catch(e) { log("localStorage error: " + e); }
+    
+    log("
+=== sessionStorage keys ===");
+    try {
+        for (var i = 0; i < sessionStorage.length; i++) {
+            log("ss[" + sessionStorage.key(i) + "] = " + sessionStorage.getItem(sessionStorage.key(i)).substring(0,100));
+        }
+        if (sessionStorage.length === 0) log("(empty)");
+    } catch(e) { log("sessionStorage error: " + e); }
+    
+    log("
+=== cookies ===");
+    log(document.cookie || "(empty)");
+    
+    log("
+=== window.ethereum methods ===");
+    try {
+        Object.getOwnPropertyNames(window.ethereum).forEach(function(k) {
+            try {
+                if (typeof window.ethereum[k] === "function") log("ethereum." + k + "()");
+            } catch(e) {}
+        });
+        var proto = Object.getPrototypeOf(window.ethereum);
+        if (proto) {
+            Object.getOwnPropertyNames(proto).forEach(function(k) {
+                try {
+                    if (typeof proto[k] === "function") log("ethereum.proto." + k + "()");
+                } catch(e) {}
+            });
+        }
+    } catch(e) { log("error: " + e); }
 }
 </script>
 </body>
