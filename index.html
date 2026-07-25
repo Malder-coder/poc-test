@@ -1,46 +1,43 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="UTF-8"><title>CoinEx Wallet Address Test</title></head>
+<head><meta charset="UTF-8"><title>Test</title></head>
 <body>
-<h2>Wallet Address Test</h2>
-<pre id="out" style="background:#f0f0f0;padding:10px;word-break:break-all"></pre>
+<h2>CoinEx Wallet Test</h2>
+<button onclick="runTest()" style="font-size:20px;padding:10px">НАЖМИ МЕНЯ</button>
+<br><br>
+<div id="out" style="background:#eee;padding:10px;font-size:14px;word-break:break-all"></div>
 <script>
-var out = document.getElementById("out");
-function log(s) { out.textContent += s + "
-"; }
-
-// Тест 1: адрес уже в window.ethereum
-window.addEventListener("load", function() {
-    setTimeout(function() {
+function log(s) {
+    document.getElementById("out").innerHTML += s + "<br>";
+}
+function runTest() {
+    log("=== START ===");
+    log("ethereum: " + typeof window.ethereum);
+    log("trust: " + typeof window.trust);
+    log("trustwallet: " + typeof window.trustwallet);
+    log("vtrx: " + typeof window.vtrx);
+    log("_tw_: " + typeof window._tw_);
+    log("web3: " + typeof window.web3);
+    if (window.ethereum) {
+        log("address: " + window.ethereum.address);
+        log("selectedAddress: " + window.ethereum.selectedAddress);
+        log("chainId: " + window.ethereum.chainId);
+        log("isViaWallet: " + window.ethereum.isViaWallet);
         try {
-            log("window.ethereum exists: " + (typeof window.ethereum));
-            if (window.ethereum) {
-                log("ethereum.address: " + window.ethereum.address);
-                log("ethereum.selectedAddress: " + window.ethereum.selectedAddress);
-                log("ethereum.chainId: " + window.ethereum.chainId);
-                log("ethereum.isViaWallet: " + window.ethereum.isViaWallet);
-                log("ethereum.isTrust: " + window.ethereum.isTrust);
-            }
-            log("window.trustwallet: " + (typeof window.trustwallet));
-            log("window.trust: " + (typeof window.trust));
-            log("window.vtrx: " + (typeof window.vtrx));
-        } catch(e) { log("ERROR: " + e.message); }
-    }, 500);
-    
-    // Тест 2: eth_accounts без запроса
-    setTimeout(function() {
-        if (window.ethereum) {
-            window.ethereum.request({method: "eth_accounts"}).then(function(accounts) {
-                log("eth_accounts response: " + JSON.stringify(accounts));
-            }).catch(function(e) { log("eth_accounts error: " + e.message); });
-        }
-    }, 1000);
-    
-    // Тест 3: слушаем phantomRpcMessage (на случай если это Phantom-подобная архитектура)
-    window.addEventListener("message", function(e) {
-        log("window.message: " + JSON.stringify(e.data));
-    });
-});
+            var keys = Object.keys(window.ethereum);
+            log("keys: " + JSON.stringify(keys.slice(0,10)));
+        } catch(e) { log("keys error: " + e); }
+    }
+    if (window.web3) {
+        try { log("web3.eth.defaultAccount: " + window.web3.eth.defaultAccount); }
+        catch(e) {}
+    }
+    try {
+        log("webkit.messageHandlers: " + typeof window.webkit.messageHandlers);
+        log("handlers: " + JSON.stringify(Object.keys(window.webkit.messageHandlers)));
+    } catch(e) { log("webkit error: " + e); }
+    log("=== DONE ===");
+}
 </script>
 </body>
 </html>
