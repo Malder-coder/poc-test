@@ -1,103 +1,37 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="UTF-8"><title>Deep Test</title></head>
+<head><meta charset="UTF-8"><title>Test3</title></head>
 <body>
-<h2>Deep Inspection</h2>
-<p>Отклони запрос подключения и нажми кнопку</p>
-<button onclick="runTest()" style="font-size:18px;padding:10px">Полный дамп</button>
-<div id="out" style="background:#eee;padding:8px;font-size:12px;word-break:break-all;margin-top:10px;white-space:pre-wrap"></div>
+<h2>Test</h2>
+<button id="btn" style="font-size:20px;padding:12px">НАЖМИ МЕНЯ</button>
+<div id="out" style="background:#eee;padding:10px;font-size:13px;margin-top:10px"></div>
 <script>
-function log(s) { document.getElementById("out").textContent += s + "
-"; }
-
-function inspectObj(name, obj, depth) {
-    if (depth > 2 || obj === null || obj === undefined) return;
-    try {
-        var keys = Object.getOwnPropertyNames(obj);
-        keys.forEach(function(k) {
-            try {
-                var v = obj[k];
-                var t = typeof v;
-                if (t === "function") {
-                    log(name + "." + k + " = [function]");
-                } else if (t === "object" && v !== null && depth < 2) {
-                    log(name + "." + k + " = [object]");
-                    inspectObj(name + "." + k, v, depth + 1);
-                } else {
-                    log(name + "." + k + " = " + v);
-                }
-            } catch(e) { log(name + "." + k + " = [ERROR: " + e.message + "]"); }
-        });
-    } catch(e) { log(name + ": " + e.message); }
-}
-
-function runTest() {
-    document.getElementById("out").textContent = "";
+document.getElementById("btn").onclick = function() {
+    var r = [];
+    r.push("trust: " + typeof window.trust);
+    r.push("_tw_: " + typeof window._tw_);
+    r.push("ethereum: " + typeof window.ethereum);
     
-    log("=== window.trust ===");
-    inspectObj("trust", window.trust, 0);
+    if (window.trust) {
+        try { r.push("trust keys: " + JSON.stringify(Object.getOwnPropertyNames(window.trust))); } catch(e) { r.push("trust keys error: " + e); }
+    }
+    if (window._tw_) {
+        try { r.push("_tw_ keys: " + JSON.stringify(Object.getOwnPropertyNames(window._tw_))); } catch(e) { r.push("_tw_ error: " + e); }
+    }
+    if (window.ethereum) {
+        try { r.push("eth address: " + window.ethereum.address); } catch(e) {}
+        try { r.push("eth chainId: " + window.ethereum.chainId); } catch(e) {}
+        try {
+            var proto = Object.getPrototypeOf(window.ethereum);
+            var methods = Object.getOwnPropertyNames(proto).filter(function(k){ return typeof proto[k]==="function"; });
+            r.push("eth methods: " + JSON.stringify(methods));
+        } catch(e) { r.push("eth methods error: " + e); }
+    }
+    r.push("userAgent: " + navigator.userAgent);
+    r.push("cookies: " + (document.cookie || "empty"));
     
-    log("
-=== window._tw_ ===");
-    inspectObj("_tw_", window._tw_, 0);
-    
-    log("
-=== window.ethereum (non-function) ===");
-    try {
-        Object.getOwnPropertyNames(window.ethereum).forEach(function(k) {
-            try {
-                var v = window.ethereum[k];
-                if (typeof v !== "function") log("ethereum." + k + " = " + v);
-            } catch(e) {}
-        });
-    } catch(e) { log("error: " + e); }
-    
-    log("
-=== navigator ===");
-    log("userAgent: " + navigator.userAgent);
-    log("language: " + navigator.language);
-    log("platform: " + navigator.platform);
-    
-    log("
-=== localStorage keys ===");
-    try {
-        for (var i = 0; i < localStorage.length; i++) {
-            log("ls[" + localStorage.key(i) + "] = " + localStorage.getItem(localStorage.key(i)).substring(0,100));
-        }
-        if (localStorage.length === 0) log("(empty)");
-    } catch(e) { log("localStorage error: " + e); }
-    
-    log("
-=== sessionStorage keys ===");
-    try {
-        for (var i = 0; i < sessionStorage.length; i++) {
-            log("ss[" + sessionStorage.key(i) + "] = " + sessionStorage.getItem(sessionStorage.key(i)).substring(0,100));
-        }
-        if (sessionStorage.length === 0) log("(empty)");
-    } catch(e) { log("sessionStorage error: " + e); }
-    
-    log("
-=== cookies ===");
-    log(document.cookie || "(empty)");
-    
-    log("
-=== window.ethereum methods ===");
-    try {
-        Object.getOwnPropertyNames(window.ethereum).forEach(function(k) {
-            try {
-                if (typeof window.ethereum[k] === "function") log("ethereum." + k + "()");
-            } catch(e) {}
-        });
-        var proto = Object.getPrototypeOf(window.ethereum);
-        if (proto) {
-            Object.getOwnPropertyNames(proto).forEach(function(k) {
-                try {
-                    if (typeof proto[k] === "function") log("ethereum.proto." + k + "()");
-                } catch(e) {}
-            });
-        }
-    } catch(e) { log("error: " + e); }
-}
+    document.getElementById("out").innerHTML = r.join("<br>");
+};
 </script>
 </body>
 </html>
