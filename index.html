@@ -1,37 +1,45 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="UTF-8"><title>CoinEx WebView Test</title></head>
+<head><meta charset="UTF-8"><title>CoinEx Wallet Address Test</title></head>
 <body>
-<h2>WebView Security Tests</h2>
-
-<p><b>Test 1 - XSS via location:</b></p>
-<button onclick="location.href='javascript:alert(document.domain)'">Test 1: javascript: via location</button>
-
-<br><br>
-<p><b>Test 2 - Open external via window.open:</b></p>
-<button onclick="window.open('https://example.com')">Test 2: window.open</button>
-
-<br><br>
-<p><b>Test 3 - iframe with javascript:</b></p>
-<button onclick="var f=document.createElement('iframe');f.src='javascript:parent.document.write(document.domain)';document.body.appendChild(f)">Test 3: iframe javascript:</button>
-
-<br><br>
-<p><b>Test 4 - Check jsBridge exists:</b></p>
-<button onclick="alert(typeof window.jsBridge)">Test 4: jsBridge type</button>
-
-<br><br>
-<p><b>Test 5 - Check jsBridge methods:</b></p>
-<button onclick="try{alert(JSON.stringify(Object.keys(window.jsBridge)))}catch(e){alert(e.message)}">Test 5: jsBridge keys</button>
-
-<br><br>
-<p><b>Test 6 - evmAsk exists:</b></p>
-<button onclick="alert(typeof window.ethereum + ' / ' + typeof window.phantom)">Test 6: window.ethereum</button>
-
-<p id="out" style="color:red;word-break:break-all"></p>
+<h2>Wallet Address Test</h2>
+<pre id="out" style="background:#f0f0f0;padding:10px;word-break:break-all"></pre>
 <script>
-window.addEventListener("message", function(e) {
-    document.getElementById("out").textContent += "MSG: " + JSON.stringify(e.data) + "
-";
+var out = document.getElementById("out");
+function log(s) { out.textContent += s + "
+"; }
+
+// Тест 1: адрес уже в window.ethereum
+window.addEventListener("load", function() {
+    setTimeout(function() {
+        try {
+            log("window.ethereum exists: " + (typeof window.ethereum));
+            if (window.ethereum) {
+                log("ethereum.address: " + window.ethereum.address);
+                log("ethereum.selectedAddress: " + window.ethereum.selectedAddress);
+                log("ethereum.chainId: " + window.ethereum.chainId);
+                log("ethereum.isViaWallet: " + window.ethereum.isViaWallet);
+                log("ethereum.isTrust: " + window.ethereum.isTrust);
+            }
+            log("window.trustwallet: " + (typeof window.trustwallet));
+            log("window.trust: " + (typeof window.trust));
+            log("window.vtrx: " + (typeof window.vtrx));
+        } catch(e) { log("ERROR: " + e.message); }
+    }, 500);
+    
+    // Тест 2: eth_accounts без запроса
+    setTimeout(function() {
+        if (window.ethereum) {
+            window.ethereum.request({method: "eth_accounts"}).then(function(accounts) {
+                log("eth_accounts response: " + JSON.stringify(accounts));
+            }).catch(function(e) { log("eth_accounts error: " + e.message); });
+        }
+    }, 1000);
+    
+    // Тест 3: слушаем phantomRpcMessage (на случай если это Phantom-подобная архитектура)
+    window.addEventListener("message", function(e) {
+        log("window.message: " + JSON.stringify(e.data));
+    });
 });
 </script>
 </body>
